@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="BetulaR — Technical Supplement: Industrial Cell Architecture, Process Flow Diagram, Scaling Analysis">
+<title>BetulaR — Technical Supplement</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;600;700&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #D4AF37;
+  --gold-light: #E8CC6A;
+  --gold-dark: #A8881C;
+  --copper: #B87333;
+  --silver: #C0C0C0;
+  --charcoal: #0D0D0D;
+  --charcoal-card: #1E1E1E;
+  --white: #F5F5F5;
+  --white-dim: rgba(245,245,245,0.7);
+  --green: #27AE60;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--charcoal);
+  font-family: 'Barlow', sans-serif;
+  color: var(--white);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+.deck { position: relative; width: 100%; height: 100vh; }
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 50px 60px;
+  opacity: 0;
+  transform: translateX(60px);
+  transition: opacity 0.45s cubic-bezier(.4,0,.2,1), transform 0.45s cubic-bezier(.4,0,.2,1);
+  pointer-events: none;
+  overflow-y: auto;
+}
+
+.slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+.slide.exit { opacity: 0; transform: translateX(-60px); }
+
+/* Noise overlay */
+.slide::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 200px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Logo */
+.logo-mark {
+  position: absolute; top: 22px; left: 32px; z-index: 50;
+  display: flex; align-items: center; gap: 8px; opacity: 0.85;
+}
+.logo-icon { width: 28px; height: 28px; }
+.logo-text {
+  font-family: 'Bebas Neue', sans-serif; font-size: 20px;
+  letter-spacing: 3px; color: var(--gold);
+}
+
+/* Typography */
+.tag {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 11px;
+  letter-spacing: 4px; text-transform: uppercase; color: var(--gold); font-weight: 600;
+}
+.slide-title {
+  font-family: 'Bebas Neue', sans-serif; font-size: clamp(30px, 4vw, 48px);
+  letter-spacing: 2px; line-height: 1; color: var(--white); margin-bottom: 8px;
+}
+.gold-line {
+  width: 60px; height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light));
+  margin: 16px 0;
+}
+.content-area {
+  width: 100%; max-width: 1200px; position: relative; z-index: 10;
+}
+
+/* Tables */
+.data-table {
+  width: 100%; border-collapse: collapse; margin-top: 16px;
+}
+.data-table th {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 11px;
+  letter-spacing: 3px; text-transform: uppercase; color: var(--gold);
+  padding: 12px 18px; text-align: left;
+  border-bottom: 1px solid rgba(212,175,55,0.3);
+}
+.data-table td {
+  padding: 11px 18px; font-size: 13px; font-weight: 300;
+  color: var(--white-dim); border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.data-table .highlight { color: var(--gold-light); font-weight: 600; }
+.data-table .dim { color: rgba(255,255,255,0.35); }
+
+/* Spec cards */
+.spec-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px; margin-top: 16px;
+}
+.spec-card {
+  background: var(--charcoal-card); border: 1px solid rgba(212,175,55,0.2);
+  border-radius: 6px; padding: 18px 16px; text-align: center;
+}
+.spec-value {
+  font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 2px;
+  color: var(--gold); margin-bottom: 4px;
+}
+.spec-label {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 11px;
+  letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.5);
+}
+.spec-note {
+  font-size: 11px; color: rgba(255,255,255,0.25); margin-top: 4px; font-style: italic;
+}
+
+/* PFD container */
+.pfd-box {
+  background: var(--charcoal-card); border: 1px solid rgba(212,175,55,0.15);
+  border-radius: 6px; padding: 28px 24px; margin-top: 16px;
+}
+.pfd-box h3 {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 13px;
+  letter-spacing: 2px; color: var(--gold); margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+/* SVG PFD styling */
+.pfd-svg text { font-family: 'Barlow', sans-serif; }
+.pfd-equip { fill: rgba(212,175,55,0.1); stroke: rgba(212,175,55,0.35); stroke-width: 1.2; }
+.pfd-stream { stroke: rgba(255,255,255,0.4); stroke-width: 1.2; fill: none; marker-end: url(#arrowhead); }
+.pfd-label { fill: rgba(255,255,255,0.7); font-size: 9px; }
+.pfd-tag { fill: var(--gold); font-size: 8px; font-weight: 700; }
+
+/* Nav */
+.nav-btn {
+  position: fixed; top: 50%; transform: translateY(-50%); z-index: 100;
+  background: rgba(212,175,55,0.12); border: 1px solid rgba(212,175,55,0.3);
+  color: var(--gold); width: 44px; height: 44px; border-radius: 50%;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; font-size: 18px;
+}
+.nav-btn:hover { background: rgba(212,175,55,0.25); border-color: var(--gold); }
+.nav-btn.prev { left: 16px; }
+.nav-btn.next { right: 16px; }
+
+.slide-counter {
+  position: fixed; bottom: 28px; right: 36px; z-index: 100;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 12px;
+  letter-spacing: 2px; color: rgba(255,255,255,0.35);
+}
+.progress-bar {
+  position: fixed; bottom: 0; left: 0; height: 2px;
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold));
+  transition: width 0.4s ease; z-index: 100;
+}
+
+/* Print */
+@media print {
+  body { overflow: visible; height: auto; }
+  .slide { position: relative; opacity: 1 !important; transform: none !important; page-break-after: always; height: auto; min-height: 100vh; overflow: visible; }
+  .nav-btn, .slide-counter, .progress-bar { display: none !important; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .slide { padding: 30px 20px; }
+  .nav-btn { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+<!-- ═══ SLIDE 1: TITLE ═══ -->
+<div class="slide active" id="s1">
+  <div class="logo-mark">
+    <svg class="logo-icon" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="#D4AF37" stroke-width="1.5" fill="none"/><circle cx="14" cy="14" r="4" fill="#D4AF37" opacity="0.8"/></svg>
+    <span class="logo-text">BetulaR</span>
+  </div>
+  <div class="content-area" style="text-align:center">
+    <div class="tag" style="margin-bottom:12px">Technical Supplement</div>
+    <div class="slide-title">Industrial Cell Architecture</div>
+    <div class="gold-line" style="margin:0 auto 20px"></div>
+    <p style="font-size:14px;font-weight:300;color:var(--white-dim);max-width:600px;margin:0 auto">
+      Process flow diagram, equipment specifications, and scaling analysis for the BetulaR electrochemical platform.
+    </p>
+    <p style="font-size:13px;font-weight:300;color:rgba(255,255,255,0.3);margin-top:24px">
+      For engineering and due diligence review · Not for general distribution
+    </p>
+    <p style="font-size:11px;margin-top:8px;color:rgba(212,175,55,0.5);font-family:'Barlow Condensed',sans-serif;letter-spacing:2px">PATENTS PENDING</p>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 2: PROCESS FLOW DIAGRAM ═══ -->
+<div class="slide" id="s2">
+  <div class="logo-mark">
+    <svg class="logo-icon" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="#D4AF37" stroke-width="1.5" fill="none"/><circle cx="14" cy="14" r="4" fill="#D4AF37" opacity="0.8"/></svg>
+    <span class="logo-text">BetulaR</span>
+  </div>
+  <div class="content-area">
+    <div class="tag">Process Flow Diagram</div>
+    <div class="slide-title">Single Cell Module &amp; Leach Circuit</div>
+    <div class="gold-line"></div>
+
+    <div class="pfd-box">
+      <h3>Equipment Tags &amp; Streams</h3>
+      <svg viewBox="0 0 1000 380" class="pfd-svg">
+        <defs>
+          <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6Z" fill="rgba(255,255,255,0.5)"/>
+          </marker>
+        </defs>
+        <!-- Feed Prep -->
+        <rect x="20" y="140" width="100" height="50" rx="6" class="pfd-equip"/><text x="70" y="170" text-anchor="middle" class="pfd-tag">FEED PREP</text>
+        <!-- Leach Tank -->
+        <rect x="180" y="100" width="100" height="90" rx="6" class="pfd-equip"/><text x="230" y="148" text-anchor="middle" class="pfd-tag">T-101</text><text x="230" y="162" text-anchor="middle" class="pfd-label" font-size="7">LEACH TANK</text>
+        <!-- Vacuum Filter -->
+        <rect x="360" y="110" width="100" height="80" rx="6" class="pfd-equip"/><text x="410" y="153" text-anchor="middle" class="pfd-tag">F-101</text><text x="410" y="167" text-anchor="middle" class="pfd-label" font-size="7">VAC FILTER</text>
+        <!-- Electrochemical Cell -->
+        <rect x="600" y="80" width="160" height="130" rx="6" class="pfd-equip"/>
+        <text x="680" y="135" text-anchor="middle" class="pfd-tag">C-101</text>
+        <text x="680" y="148" text-anchor="middle" class="pfd-label" font-size="7">DIVIDED CELL</text>
+        <!-- Anode/Cathode labels -->
+        <text x="645" y="165" text-anchor="middle" class="pfd-label" font-size="7" fill="#D4AF37">ANODE</text>
+        <text x="715" y="165" text-anchor="middle" class="pfd-label" font-size="7" fill="#B87333">CATHODE</text>
+        <!-- Membrane visual -->
+        <line x1="680" y1="90" x2="680" y2="200" stroke="rgba(212,175,55,0.4)" stroke-width="2" stroke-dasharray="4 2"/><text x="680" y="215" text-anchor="middle" class="pfd-label" font-size="7">MEMBRANE</text>
+        <!-- Collection Vessel -->
+        <rect x="820" y="180" width="100" height="60" rx="6" class="pfd-equip"/><text x="870" y="215" text-anchor="middle" class="pfd-tag">V-101</text>
+        <!-- Neutralization -->
+        <rect x="440" y="260" width="100" height="60" rx="6" class="pfd-equip"/><text x="490" y="295" text-anchor="middle" class="pfd-tag">N-101</text>
+
+        <!-- Streams -->
+        <path d="M120,165 L180,165" class="pfd-stream" stroke="rgba(255,255,255,0.6)"/><text x="150" y="160" text-anchor="middle" class="pfd-label">1 Slurry</text>
+        <path d="M280,145 L360,145" class="pfd-stream"/><text x="320" y="140" text-anchor="middle" class="pfd-label">3 Leached</text>
+        <path d="M410,190 L410,260" class="pfd-stream"/><text x="418" y="225" text-anchor="start" class="pfd-label">5 Solids</text>
+        <path d="M460,145 L600,145" class="pfd-stream"/><text x="530" y="140" text-anchor="middle" class="pfd-label">4 Pregnant</text>
+        <path d="M600,125 L280,125" class="pfd-stream"/><text x="440" y="118" text-anchor="middle" class="pfd-label">2 Regenerated Anolyte</text>
+        <path d="M760,200 L820,200" class="pfd-stream" stroke="#B87333"/><text x="790" y="195" text-anchor="middle" class="pfd-label" fill="#B87333">7 Powder</text>
+        <path d="M870,240 L870,280 Q870,310 600,310 L600,210" class="pfd-stream" stroke="rgba(255,255,255,0.3)"/><text x="735" y="305" text-anchor="middle" class="pfd-label" font-size="7">8 Depleted Catholyte</text>
+        <path d="M540,260 L540,190 L600,190" class="pfd-stream" stroke="rgba(255,255,255,0.3)"/><text x="555" y="220" text-anchor="start" class="pfd-label" font-size="7">Wash water</text>
+        <path d="M540,320 L540,340" class="pfd-stream"/><text x="548" y="335" text-anchor="start" class="pfd-label">6 Dry Silt</text>
+        <path d="M870,260 L870,280 Q870,340 600,340" class="pfd-stream" stroke="rgba(39,174,96,0.5)"/><text x="735" y="350" text-anchor="middle" class="pfd-label" fill="#27AE60" font-size="7">9 Product</text>
+      </svg>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px">
+      <div style="font-size:11px;color:var(--white-dim)">
+        <strong style="color:var(--gold)">Key Control Points:</strong><br>
+        ORP on Stream 2 → Anode current<br>
+        pH on Stream 8 → Membrane &amp; bleed<br>
+        Level/Pressure in C-101 → Back-pulse cleaning
+      </div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.3)">
+        <strong>Single module throughput:</strong> 2,000–5,000 tpd solids<br>
+        <strong>Modules for 500k tpa:</strong> 2–6 in parallel<br>
+        <strong>Cycle:</strong> Regenerated lixiviant → Leach → Filter → Recover → Return
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 3: CELL MODULE SPECIFICATIONS ═══ -->
+<div class="slide" id="s3">
+  <div class="logo-mark">
+    <svg class="logo-icon" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="#D4AF37" stroke-width="1.5" fill="none"/><circle cx="14" cy="14" r="4" fill="#D4AF37" opacity="0.8"/></svg>
+    <span class="logo-text">BetulaR</span>
+  </div>
+  <div class="content-area">
+    <div class="tag">Cell Module</div>
+    <div class="slide-title">Specifications &amp; Throughput</div>
+    <div class="gold-line"></div>
+
+    <div class="spec-grid">
+      <div class="spec-card">
+        <div class="spec-value">10–20 m²</div>
+        <div class="spec-label">Electrode Area</div>
+        <div class="spec-note">Per cell (filter-press design)</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-value">3,000–10,000 A</div>
+        <div class="spec-label">Operating Current</div>
+        <div class="spec-note">200–500 A/m² density</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-value">3.5–5 V</div>
+        <div class="spec-label">Cell Voltage</div>
+        <div class="spec-note">Anode/cathode + ohmic drop</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-value">2–5 ktpd</div>
+        <div class="spec-label">Solid Throughput</div>
+        <div class="spec-note">Per module (ore-dependent)</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-value">10–50 kg/d</div>
+        <div class="spec-label">Metal Recovery</div>
+        <div class="spec-note">Valuable metals per module</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-value">2–6 Modules</div>
+        <div class="spec-label">For 500k tpa</div>
+        <div class="spec-note">Parallel configuration</div>
+      </div>
+    </div>
+
+    <table class="data-table" style="margin-top:24px">
+      <tr><th>Parameter</th><th>Specification</th><th>Notes</th></tr>
+      <tr><td>Cell type</td><td>Divided filter-press</td><td>Single cell, membrane-separated</td></tr>
+      <tr><td>Anode</td><td>Ti / MMO (IrO₂/Ta₂O₅)</td><td>Chlorine evolution, pH 0–1</td></tr>
+      <tr><td>Cathode</td><td>Graphite / Ti with 3D coating</td><td>High surface area; back-pulse harvest</td></tr>
+      <tr><td>Membrane</td><td>Low-cost CEM (proprietary)</td><td>Solvent-cast, &lt;$1/yd²</td></tr>
+      <tr><td>Cell dimensions</td><td>~4m × 2m × 3m (L×W×H)</td><td>Skid-mounted</td></tr>
+      <tr><td>Electrolyte volume</td><td>2,000–5,000 L/cell</td><td>Circulated to external leach tank</td></tr>
+      <tr><td>Maintenance</td><td>Swap electrodes/membrane in hours</td><td>Bypass valves for isolation</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 4: FOOTPRINT & COST ═══ -->
+<div class="slide" id="s4">
+  <div class="logo-mark">
+    <svg class="logo-icon" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="#D4AF37" stroke-width="1.5" fill="none"/><circle cx="14" cy="14" r="4" fill="#D4AF37" opacity="0.8"/></svg>
+    <span class="logo-text">BetulaR</span>
+  </div>
+  <div class="content-area">
+    <div class="tag">Footprint &amp; Capital</div>
+    <div class="slide-title">Plant Comparison (500,000 tpa)</div>
+    <div class="gold-line"></div>
+
+    <table class="data-table">
+      <tr><th>Item</th><th>Conventional CIL</th><th>BetulaR Modular Plant</th></tr>
+      <tr><td>Leach/Adsorption</td><td>6–8 large tanks (~10m dia each)</td><td class="highlight">1–2 agitated leach tanks</td></tr>
+      <tr><td>Solid-Liquid Separation</td><td>CCD circuit (multiple thickeners)</td><td class="highlight">1–2 vacuum drum filters</td></tr>
+      <tr><td>Refining Circuit</td><td>Carbon stripping + electrowinning</td><td class="highlight">2–6 filter-press cells (SPR)</td></tr>
+      <tr><td>Tailings</td><td class="dim">Wet dam (200+ hectares)</td><td class="highlight">None — dry stack</td></tr>
+      <tr><td>Cyanide handling</td><td class="dim">Storage, mixing, detox</td><td class="highlight">None</td></tr>
+      <tr><td>Process building footprint</td><td>~2,000–5,000 m²</td><td class="highlight">~500–1,000 m²</td></tr>
+      <tr style="border-top:1px solid rgba(212,175,55,0.4)"><td><strong>Capital Cost Estimate</strong></td><td><strong>~A$100M</strong></td><td class="highlight"><strong>A$15–25M</strong></td></tr>
+    </table>
+
+    <div style="margin-top:16px;font-size:12px;color:rgba(255,255,255,0.35);text-align:center;font-style:italic">
+      BetulaR estimate includes crushing, grinding, leach tanks, cells, rectifiers, installation, and commissioning. Excludes site-specific earthworks and permitting.
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 5: OPERATING PHILOSOPHY ═══ -->
+<div class="slide" id="s5">
+  <div class="logo-mark">
+    <svg class="logo-icon" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="#D4AF37" stroke-width="1.5" fill="none"/><circle cx="14" cy="14" r="4" fill="#D4AF37" opacity="0.8"/></svg>
+    <span class="logo-text">BetulaR</span>
+  </div>
+  <div class="content-area">
+    <div class="tag">Operating Philosophy</div>
+    <div class="slide-title">Control, Maintenance &amp; Redundancy</div>
+    <div class="gold-line"></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:16px">
+      <div>
+        <h4 style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--gold);margin-bottom:12px">Key Control Points</h4>
+        <ul style="list-style:none;font-size:13px;color:var(--white-dim);line-height:1.8">
+          <li>→ ORP probe on regenerated anolyte → controls anode current to maintain &gt;1.5 V vs SHE</li>
+          <li>→ pH sensor on catholyte return → detects acid build-up; triggers membrane current adjustment</li>
+          <li>→ Pressure differential across membrane → initiates back-pulse cleaning cycle</li>
+          <li>→ Inline XRF/ICP on pregnant solution → programs SPR voltage sequence</li>
+          <li>→ Level sensors in collection vessel → triggers metal powder harvest cycle</li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--gold);margin-bottom:12px">Maintenance &amp; Redundancy</h4>
+        <ul style="list-style:none;font-size:13px;color:var(--white-dim);line-height:1.8">
+          <li>→ Each cell module is isolated with bypass valves — one module offline, rest continue</li>
+          <li>→ Electrode plates are segmented; swap individual plates, not the entire cell</li>
+          <li>→ Membrane replacement: &lt;2 hours per cell (proprietary frame &amp; gasket design)</li>
+          <li>→ Rectifiers are modular, off-the-shelf industrial DC units</li>
+          <li>→ Pumps are magnetically driven, acid-resistant — standard chemical duty</li>
+          <li>→ Full plant shutdown for membrane replacement not required</li>
+        </ul>
+      </div>
+    </div>
+    <div style="margin-top:20px;padding:16px;background:rgba(39,174,96,0.05);border:1px solid rgba(39,174,96,0.2);border-radius:4px;text-align:center;font-size:13px;color:#27AE60;font-family:'Barlow Condensed',sans-serif;letter-spacing:2px">
+      Designed for continuous operation · Hot-swappable components · Operator-friendly from day one
+    </div>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- Controls -->
+<button class="nav-btn prev" onclick="navigate(-1)">&#8249;</button>
+<button class="nav-btn next" onclick="navigate(1)">&#8250;</button>
+<div class="slide-counter" id="counter">1 / 5</div>
+<div class="progress-bar" id="progress"></div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+let current = 0;
+
+function showSlide(idx) {
+  slides[current].classList.remove('active');
+  slides[current].classList.add('exit');
+  setTimeout(() => slides[current].classList.remove('exit'), 500);
+  current = (idx + total) % total;
+  slides[current].classList.add('active');
+  document.getElementById('counter').textContent = `${current + 1} / ${total}`;
+  document.getElementById('progress').style.width = `${((current + 1) / total) * 100}%`;
+}
+
+function navigate(dir) { showSlide(current + dir); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navigate(1);
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') navigate(-1);
+});
+
+let tx = 0;
+document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 50) navigate(dx < 0 ? 1 : -1);
+});
+
+document.getElementById('progress').style.width = `${(1/total)*100}%`;
+</script>
+</body>
+</html>
