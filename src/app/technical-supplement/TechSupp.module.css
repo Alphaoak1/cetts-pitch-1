@@ -1,0 +1,391 @@
+:root {
+  --gold: #D4AF37;
+  --gold-light: #E8CC6A;
+  --gold-dark: #A8881C;
+  --copper: #B87333;
+  --charcoal: #0D0D0D;
+  --charcoal-card: #1E1E1E;
+  --white: #F5F5F5;
+  --white-dim: rgba(245,245,245,0.7);
+  --green: #27AE60;
+}
+
+/* ── Layout ── */
+.deck {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  background: var(--charcoal);
+  font-family: 'Barlow', 'Inter', sans-serif;
+  color: var(--white);
+  overflow: hidden;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 50px 60px;
+  opacity: 0;
+  transform: translateX(60px);
+  transition: opacity 0.45s cubic-bezier(.4,0,.2,1), transform 0.45s cubic-bezier(.4,0,.2,1);
+  pointer-events: none;
+  overflow-y: auto;
+}
+
+.slideActive {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: all;
+}
+
+.slideExit {
+  opacity: 0;
+  transform: translateX(-60px);
+}
+
+/* Noise overlay */
+.slide::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 200px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Logo ── */
+.logoMark {
+  position: absolute;
+  top: 22px;
+  left: 32px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.85;
+}
+
+.logoIcon { width: 28px; height: 28px; }
+
+.logoText {
+  font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  letter-spacing: 3px;
+  color: var(--gold);
+}
+
+/* ── Typography ── */
+.tag {
+  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.slideTitle {
+  font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif;
+  font-size: clamp(30px, 4vw, 48px);
+  letter-spacing: 2px;
+  line-height: 1;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+
+.goldLine {
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light));
+  margin: 16px 0;
+}
+
+.goldLineCentered { margin: 16px auto; }
+
+.contentArea {
+  width: 100%;
+  max-width: 1200px;
+  position: relative;
+  z-index: 10;
+}
+
+.centered { text-align: center; }
+
+.subText {
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--white-dim);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.subTextDim {
+  font-size: 13px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.3);
+}
+
+.patentTag {
+  font-size: 11px;
+  margin-top: 8px;
+  color: rgba(212,175,55,0.5);
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 2px;
+}
+
+.goldText { color: var(--gold); }
+
+/* ── Tables ── */
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+.dataTableMt { margin-top: 24px; }
+
+.dataTableTh {
+  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold);
+  padding: 12px 18px;
+  text-align: left;
+  border-bottom: 1px solid rgba(212,175,55,0.3);
+}
+
+.dataTableTd {
+  padding: 11px 18px;
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--white-dim);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.highlight { color: var(--gold-light); font-weight: 600; }
+.dim { color: rgba(255,255,255,0.35); }
+
+/* ── Spec cards ── */
+.specGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.specCard {
+  background: var(--charcoal-card);
+  border: 1px solid rgba(212,175,55,0.2);
+  border-radius: 6px;
+  padding: 18px 16px;
+  text-align: center;
+}
+
+.specValue {
+  font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif;
+  font-size: 32px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+
+.specLabel {
+  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+}
+
+.specNote {
+  font-size: 11px;
+  color: rgba(255,255,255,0.25);
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* ── PFD ── */
+.pfdBox {
+  background: var(--charcoal-card);
+  border: 1px solid rgba(212,175,55,0.15);
+  border-radius: 6px;
+  padding: 28px 24px;
+  margin-top: 16px;
+}
+
+.pfdBoxTitle {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+.pfdSvg { width: 100%; }
+
+.pfdEquip {
+  fill: rgba(212,175,55,0.1);
+  stroke: rgba(212,175,55,0.35);
+  stroke-width: 1.2;
+}
+
+.pfdStream {
+  stroke: rgba(255,255,255,0.4);
+  stroke-width: 1.2;
+  fill: none;
+  marker-end: url(#arrowhead);
+}
+
+.pfdLabel {
+  fill: rgba(255,255,255,0.7);
+  font-size: 9px;
+  font-family: 'Barlow', 'Inter', sans-serif;
+}
+
+.pfdTag {
+  fill: var(--gold);
+  font-size: 8px;
+  font-weight: 700;
+  font-family: 'Barlow', 'Inter', sans-serif;
+}
+
+.pfdFooter {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.pfdFooterCell {
+  font-size: 11px;
+  color: var(--white-dim);
+}
+
+.pfdFooterCellDim {
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+}
+
+/* ── Footprint slide ── */
+.footprintDisclaimer {
+  margin-top: 16px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.35);
+  text-align: center;
+  font-style: italic;
+}
+
+/* ── Ops slide ── */
+.opsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.opsHeading {
+  font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  margin-bottom: 12px;
+  font-weight: 400;
+}
+
+.opsList {
+  list-style: none;
+  font-size: 13px;
+  color: var(--white-dim);
+  line-height: 1.8;
+}
+
+.opsBanner {
+  margin-top: 20px;
+  padding: 16px;
+  background: rgba(39,174,96,0.05);
+  border: 1px solid rgba(39,174,96,0.2);
+  border-radius: 4px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--green);
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 2px;
+}
+
+/* ── Navigation ── */
+.navBtn {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  background: rgba(212,175,55,0.12);
+  border: 1px solid rgba(212,175,55,0.3);
+  color: var(--gold);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 18px;
+}
+
+.navBtn:hover {
+  background: rgba(212,175,55,0.25);
+  border-color: var(--gold);
+}
+
+.navPrev { left: 16px; }
+.navNext { right: 16px; }
+
+.slideCounter {
+  position: fixed;
+  bottom: 28px;
+  right: 36px;
+  z-index: 100;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.35);
+}
+
+.progressBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold));
+  transition: width 0.4s ease;
+  z-index: 100;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .slide { padding: 30px 20px; }
+  .navBtn { display: none; }
+  .pfdFooter, .opsGrid { grid-template-columns: 1fr; }
+}
+
+/* ── Print ── */
+@media print {
+  .slide {
+    position: relative;
+    opacity: 1 !important;
+    transform: none !important;
+    page-break-after: always;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+  .navBtn, .slideCounter, .progressBar { display: none !important; }
+}
