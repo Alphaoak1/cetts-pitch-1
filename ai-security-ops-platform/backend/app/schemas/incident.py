@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from datetime import datetime
 from typing import Optional, Dict, Any
 
@@ -24,3 +24,8 @@ class IncidentResponse(BaseModel):
     transcript: Optional[str]
     summary: Optional[str]
     status: str
+
+    @field_validator("id", mode="before")
+    @classmethod
+    def coerce_uuid(cls, v):
+        return str(v)
