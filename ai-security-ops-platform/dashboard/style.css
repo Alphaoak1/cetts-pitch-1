@@ -1,0 +1,12 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0A0A0A; font-family: system-ui, -apple-system; color: #E0E0E0; padding: 1rem; }
+.dashboard { max-width: 1400px; margin: 0 auto; background: #0F0F0F; border-radius: 24px; overflow: hidden; }
+.header { background: #1A1A1A; padding: 1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2A2A2A; flex-wrap: wrap; }
+.logo { font-weight: 700; font-size: 1.4rem; background: linear-gradient(135deg, #3B82F6, #06B6D4); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.header-actions { display: flex; gap: 1rem; }
+.search-box { background: #2A2A2A; border: none; padding: 0.5rem 1rem; border-radius: 40px; color: white; }
+.main-grid { display: grid; grid-template-columns: 260px 1fr 300px; gap: 1rem; padding: 1.5rem; }
+.card { background: #151515; border-radius: 20px; padding: 1rem; border: 1px solid #252525; }
+.incident-feed { display: flex; flex-direction: column; gap: 1rem; }
+.incident-card { background: #1A1A1A; border-radius: 16px; padding: 1rem; border-left: 4px solid #EF4444; }
+@media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }

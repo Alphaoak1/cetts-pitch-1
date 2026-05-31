@@ -1,0 +1,48 @@
+version: '3.9'
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: security_ops
+      POSTGRES_USER: \${DB_USER}
+      POSTGRES_PASSWORD: \${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \${DB_USER}"]
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: \${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: \${MINIO_SECRET_KEY}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+  backend:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+asyncpg://\${DB_USER}:\${DB_PASSWORD}@db:5432/security_ops
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: \${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: \${MINIO_SECRET_KEY}
+      JWT_SECRET_KEY: \${JWT_SECRET_KEY}
+    depends_on:
+      - db
+      - redis
+      - minio
+    volumes:
+      - ./app:/app/app
+    ports:
+      - "8000:8000"
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:

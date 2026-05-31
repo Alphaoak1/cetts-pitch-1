@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Security Ops Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <div class="logo">🔷 AI Security Operations</div>
+            <div class="header-actions">
+                <input type="text" placeholder="Search incidents..." id="search">
+                <button id="darkModeToggle">🌙</button>
+            </div>
+        </div>
+        <div class="main-grid">
+            <div class="card">
+                <h3>Officers</h3>
+                <ul id="officerList"></ul>
+            </div>
+            <div class="incident-feed" id="incidentFeed">
+                <div class="loading">Loading incidents...</div>
+            </div>
+            <div class="card">
+                <h3>Map</h3>
+                <div class="map-placeholder">[Interactive Map]</div>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
